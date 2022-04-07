@@ -19,9 +19,9 @@
     "python.linting.lintOnSave": true,
     "python.formatting.provider": "autopep8",
     "editor.formatOnPaste": true,
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "extensions.ignoreRecommendations": true,
-    "files.autoSave": "off",
+    "files.autoSave": "afterDelay",
     "debug.allowBreakpointsEverywhere": true,
     "cSpell.enableFiletypes": [
         "!yaml",
