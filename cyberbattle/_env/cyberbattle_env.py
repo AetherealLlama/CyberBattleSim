@@ -3,27 +3,24 @@
 
 """Anatares OpenGym Environment"""
 
-
-import time
 import copy
 import logging
-import networkx
-from networkx import convert_matrix
+import time
 from typing import NamedTuple, Optional, Tuple, List, Dict, TypeVar, TypedDict, cast
 
-import numpy
 import gym
+import networkx
+import numpy
+import plotly.graph_objects as go
 from gym import spaces
 from gym.utils import seeding
-
-import plotly.graph_objects as go
+from networkx import convert_matrix
 from plotly.subplots import make_subplots
 
 from cyberbattle._env.defender import DefenderAgent
 from cyberbattle.simulation.model import PortName, PrivilegeLevel
-from ..simulation import commandcontrol, model, actions
 from .discriminatedunion import DiscriminatedUnion
-
+from ..simulation import commandcontrol, model, actions
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +32,6 @@ NA = 1
 UNUSED_SLOT = numpy.int32(0)
 # Value defining a used space slot
 USED_SLOT = numpy.int32(1)
-
 
 # Action Space dictionary type
 # The actual action space is later defined as a 'spaces.Dict(x)' where x:ActionSpaceDict
@@ -134,7 +130,6 @@ Observation = TypedDict(
         'explored_network': networkx.DiGraph
 
     })
-
 
 # Information returned to gym by the step function
 StepInfo = TypedDict(
@@ -630,8 +625,8 @@ class CyberBattleEnv(gym.Env):
                 for vulnerability_index in range(local_vulnerabilities_count):
                     vulnerability_id = self.__index_to_local_vulnerabilityid(vulnerability_index)
                     node_vulnerable = vulnerability_id in self.__environment.vulnerability_library or \
-                        vulnerability_id in self.__environment.get_node(
-                            source_node_id).vulnerabilities
+                                      vulnerability_id in self.__environment.get_node(
+                        source_node_id).vulnerabilities
 
                     if node_vulnerable:
                         bitmask["local_vulnerability"][source_index, vulnerability_index] = 1
@@ -640,15 +635,15 @@ class CyberBattleEnv(gym.Env):
                 for target_node_id in self.__discovered_nodes:
                     target_index = self.__find_external_index(target_node_id)
                     bitmask["remote_vulnerability"][source_index,
-                                                    target_index,
-                                                    :remote_vulnerabilities_count] = 1
+                    target_index,
+                    :remote_vulnerabilities_count] = 1
 
                     # the agent may attempt to connect to any port
                     # and use any credential from its cache (though it's not guaranteed to succeed)
                     bitmask["connect"][source_index,
-                                       target_index,
-                                       :port_count,
-                                       :len(self.__credential_cache)] = 1
+                    target_index,
+                    :port_count,
+                    :len(self.__credential_cache)] = 1
 
     def compute_action_mask(self) -> ActionMask:
         """Compute the action mask for the current state"""
@@ -924,21 +919,21 @@ class CyberBattleEnv(gym.Env):
         if kind == "local_vulnerability":
             source_node, vulnerability_index = action['local_vulnerability']
             in_range = source_node < n_discovered_nodes \
-                and self.is_node_owned(source_node) \
-                and vulnerability_index < self.__bounds.local_attacks_count
+                       and self.is_node_owned(source_node) \
+                       and vulnerability_index < self.__bounds.local_attacks_count
         elif kind == "remote_vulnerability":
             source_node, target_node, vulnerability_index = action["remote_vulnerability"]
             in_range = source_node < n_discovered_nodes \
-                and self.is_node_owned(source_node) \
-                and target_node < n_discovered_nodes \
-                and vulnerability_index < self.__bounds.remote_attacks_count
+                       and self.is_node_owned(source_node) \
+                       and target_node < n_discovered_nodes \
+                       and vulnerability_index < self.__bounds.remote_attacks_count
         elif kind == "connect":
             source_node, target_node, port_index, credential_cache_index = action["connect"]
             in_range = source_node < n_discovered_nodes and \
-                self.is_node_owned(source_node) \
-                and target_node < n_discovered_nodes \
-                and port_index < self.__bounds.port_count \
-                and credential_cache_index < len(self.__credential_cache)
+                       self.is_node_owned(source_node) \
+                       and target_node < n_discovered_nodes \
+                       and port_index < self.__bounds.port_count \
+                       and credential_cache_index < len(self.__credential_cache)
 
         return in_range and self.apply_mask(action, action_mask)
 
@@ -999,7 +994,7 @@ class CyberBattleEnv(gym.Env):
             return False
 
         if self.__defender_agent is not None and \
-                self._defender_actuator.network_availability >= goal.low_availability:
+            self._defender_actuator.network_availability >= goal.low_availability:
             return False
 
         return True
@@ -1009,7 +1004,7 @@ class CyberBattleEnv(gym.Env):
         constraint = self.__defender_constraint
 
         if self.__defender_agent is not None and \
-                self._defender_actuator.network_availability < constraint.maintain_sla:
+            self._defender_actuator.network_availability < constraint.maintain_sla:
             return True
 
         return False

@@ -29,13 +29,13 @@ def run_random_agent(episode_count: int, iteration_count: int, gym_env: cyberbat
 
             if reward > 0:
                 print(f'+ rewarded action: {action} total_reward={total_reward} reward={reward} @t={t}')
-                gym_env.render()
+                # gym_env.render()
 
             if done:
-                print(f"Episode finished after {t+1} timesteps")
+                print(f"Episode finished after {t+1} time steps")
                 break
 
-        gym_env.render()
+        # gym_env.render()
 
     gym_env.close()
     print("simulation ended")

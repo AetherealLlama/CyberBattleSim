@@ -137,7 +137,7 @@ def epsilon_greedy_search(
     render=True,
     render_last_episode_rewards_to: Optional[str] = None,
     verbosity: Verbosity = Verbosity.Normal,
-    plot_episodes_length=True
+    plot_episodes_length: bool = True
 ) -> TrainedLearner:
     """Epsilon greedy search for CyberBattle gym environments
 
@@ -178,7 +178,7 @@ def epsilon_greedy_search(
     Note on convergence
     ===================
 
-    Setting 'minimum_espilon' to 0 with an exponential decay <1
+    Setting 'minimum_epsilon' to 0 with an exponential decay <1
     makes the learning converge quickly (loss function getting to 0),
     but that's just a forced convergence, however, since when
     epsilon approaches 0, only the q-values that were explored so

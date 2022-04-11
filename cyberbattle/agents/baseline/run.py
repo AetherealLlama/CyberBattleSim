@@ -1,4 +1,4 @@
-#!/usr/bin/python3.8
+#!/usr/bin/env python3
 
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
@@ -6,7 +6,7 @@
 # -*- coding: utf-8 -*-
 """CLI to run the baseline Deep Q-learning and Random agents
    on a sample CyberBattle gym environment and plot the respective
-   cummulative rewards in the terminal.
+   cumulative rewards in the terminal.
 
 Example usage:
 
@@ -49,8 +49,10 @@ parser.add_argument('--rewardplot_width', default=80, type=int,
 parser.add_argument('--chain_size', default=4, type=int,
                     help='size of the chain of the CyberBattleChain sample environment')
 
-parser.add_argument('--random_agent', dest='run_random_agent', action='store_true', help='run the random agent as a baseline for comparison')
-parser.add_argument('--no-random_agent', dest='run_random_agent', action='store_false', help='do not run the random agent as a baseline for comparison')
+parser.add_argument('--random_agent', dest='run_random_agent', action='store_true',
+                    help='run the random agent as a baseline for comparison')
+parser.add_argument('--no-random_agent', dest='run_random_agent', action='store_false',
+                    help='do not run the random agent as a baseline for comparison')
 parser.set_defaults(run_random_agent=True)
 
 args = parser.parse_args()
@@ -92,7 +94,8 @@ dqn_learning_run = learner.epsilon_greedy_search(
     epsilon_exponential_decay=5000,  # 10000
     epsilon_minimum=0.10,
     verbosity=Verbosity.Quiet,
-    title="DQL"
+    title="DQL",
+    plot_episodes_length=False,
 )
 
 all_runs.append(dqn_learning_run)
@@ -107,7 +110,8 @@ if args.run_random_agent:
         epsilon=1.0,  # purely random
         render=False,
         verbosity=Verbosity.Quiet,
-        title="Random search"
+        title="Random search",
+        plot_episodes_length=False
     )
     all_runs.append(random_run)
 
@@ -117,5 +121,5 @@ print("Episode duration -- DQN=Red, Random=Green")
 print(asciichartpy.plot(p.episodes_lengths_for_all_runs(all_runs), {'height': 30, 'colors': colors}))
 
 print("Cumulative rewards -- DQN=Red, Random=Green")
-c = p.averaged_cummulative_rewards(all_runs, args.rewardplot_with)
+c = p.averaged_cummulative_rewards(all_runs, args.rewardplot_width)
 print(asciichartpy.plot(c, {'height': 10, 'colors': colors}))

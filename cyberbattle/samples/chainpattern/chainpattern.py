@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-"""Defines a set of networks following a speficic pattern
+"""Defines a set of networks following a specific pattern
 learnable from the properties associated with the nodes.
 
 The network pattern is:

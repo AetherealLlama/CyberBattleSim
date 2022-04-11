@@ -21,7 +21,8 @@ class StateAugmentation:
     def __init__(self, observation: cyberbattle_env.Observation):
         self.observation = observation
 
-    def on_step(self, action: cyberbattle_env.Action, reward: float, done: bool, observation: cyberbattle_env.Observation):
+    def on_step(self, action: cyberbattle_env.Action, reward: float, done: bool,
+                observation: cyberbattle_env.Observation):
         self.observation = observation
 
     def on_reset(self, observation: cyberbattle_env.Observation):
@@ -312,7 +313,7 @@ class RavelEncoding(FeatureEncoder):
         index: np.int32 = np.ravel_multi_index(feature_vector, self.dim_sizes)
         assert index < self.ravelled_size, \
             f'feature vector out of bound ({feature_vector}, dim={self.dim_sizes}) ' \
-            f'-> index={index}, max_index={self.ravelled_size-1})'
+            f'-> index={index}, max_index={self.ravelled_size - 1})'
         return index
 
     def unravel_index(self, index) -> np.ndarray:
@@ -445,7 +446,8 @@ class ActionTrackingStateAugmentation(StateAugmentation):
         self.env_properties = p
         super().__init__(observation)
 
-    def on_step(self, action: cyberbattle_env.Action, reward: float, done: bool, observation: cyberbattle_env.Observation):
+    def on_step(self, action: cyberbattle_env.Action, reward: float, done: bool,
+                observation: cyberbattle_env.Observation):
         node = cyberbattle_env.sourcenode_of_action(action)
         abstract_action = self.aa.abstract_from_gymaction(action)
         if reward > 0:
