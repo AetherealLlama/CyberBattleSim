@@ -19,21 +19,22 @@ formally defined by:
   - VulnerabilityID : string
   - Rates : ProbingDetectionRate x ExploitDetectionRate x SuccessRate
   - FirewallConfig: {
-      outgoing :  FirwallRule[]
-      incoming : FirwallRule [] }
+      outgoing :  FirewallRule[]
+      incoming : FirewallRule [] }
   - FirewallRule: PortName x { ALLOW, BLOCK }
 """
 
-from datetime import datetime, time
-from typing import NamedTuple, List, Dict, Optional, Union, Tuple, Iterator
 import dataclasses
+import random
 from dataclasses import dataclass
-import matplotlib.pyplot as plt  # type:ignore
+from datetime import datetime, time
 from enum import Enum, IntEnum
+from typing import NamedTuple, List, Dict, Optional, Union, Tuple, Iterator
+
 import boolean
+import matplotlib.pyplot as plt  # type:ignore
 import networkx as nx
 import yaml
-import random
 
 VERSION_TAG = "0.1.0"
 
@@ -51,7 +52,6 @@ CredentialID = str
 
 # Intrinsic value of a reaching a given node in [0,100]
 NodeValue = int
-
 
 PortName = str
 
@@ -190,7 +190,7 @@ VulnerabilityOutcomes = Union[
     SystemEscalation, CustomerData, LateralMove, ExploitFailed]
 
 
-class AttackResult():
+class AttackResult:
     """The result of attempting a specific attack (either local or remote)"""
     success: bool
     expected_outcome: Union[VulnerabilityOutcomes, None]
@@ -378,6 +378,7 @@ def create_network(nodes: Dict[NodeID, NodeInfo]) -> nx.DiGraph:
     graph.add_nodes_from([(k, {'data': v}) for (k, v) in list(nodes.items())])
     return graph
 
+
 # Helpers to infer constants from an environment
 
 
@@ -390,9 +391,9 @@ def collect_ports_from_vuln(vuln: VulnerabilityInfo) -> List[PortName]:
 
 
 def collect_vulnerability_ids_from_nodes_bytype(
-        nodes: Iterator[Tuple[NodeID, NodeInfo]],
-        global_vulnerabilities: VulnerabilityLibrary,
-        type: VulnerabilityType) -> List[VulnerabilityID]:
+    nodes: Iterator[Tuple[NodeID, NodeInfo]],
+    global_vulnerabilities: VulnerabilityLibrary,
+    type: VulnerabilityType) -> List[VulnerabilityID]:
     """Collect and return all IDs of all vulnerability of the specified type
     that are referenced in a given set of nodes and vulnerability library
     """
@@ -418,8 +419,8 @@ def collect_properties_from_nodes(nodes: Iterator[Tuple[NodeID, NodeInfo]]) -> L
 
 
 def collect_ports_from_nodes(
-        nodes: Iterator[Tuple[NodeID, NodeInfo]],
-        vulnerability_library: VulnerabilityLibrary) -> List[PortName]:
+    nodes: Iterator[Tuple[NodeID, NodeInfo]],
+    vulnerability_library: VulnerabilityLibrary) -> List[PortName]:
     """Collect and return all port names used in a given set of nodes
     and global vulnerability library"""
     return sorted(list({
@@ -443,8 +444,8 @@ def collect_ports_from_environment(environment: Environment) -> List[PortName]:
 
 
 def infer_constants_from_nodes(
-        nodes: Iterator[Tuple[NodeID, NodeInfo]],
-        vulnerabilities: Dict[VulnerabilityID, VulnerabilityInfo]) -> Identifiers:
+    nodes: Iterator[Tuple[NodeID, NodeInfo]],
+    vulnerabilities: Dict[VulnerabilityID, VulnerabilityInfo]) -> Identifiers:
     """Infer global environment constants from a given network"""
     return Identifiers(
         properties=collect_properties_from_nodes(nodes),
@@ -457,8 +458,8 @@ def infer_constants_from_nodes(
 
 
 def infer_constants_from_network(
-        network: nx.Graph,
-        vulnerabilities: Dict[VulnerabilityID, VulnerabilityInfo]) -> Identifiers:
+    network: nx.Graph,
+    vulnerabilities: Dict[VulnerabilityID, VulnerabilityInfo]) -> Identifiers:
     """Infer global environment constants from a given network"""
     return infer_constants_from_nodes(iterate_network_nodes(network), vulnerabilities)
 
@@ -475,13 +476,15 @@ SAMPLE_IDENTIFIERS = Identifiers(
 
 
 def assign_random_labels(
-        graph: nx.DiGraph,
-        vulnerabilities: VulnerabilityLibrary = dict([]),
-        identifiers: Identifiers = SAMPLE_IDENTIFIERS) -> nx.DiGraph:
-    """Create an envrionment network by randomly assigning node information
+    graph: nx.DiGraph,
+    vulnerabilities=None,
+    identifiers: Identifiers = SAMPLE_IDENTIFIERS) -> nx.DiGraph:
+    """Create an environment network by randomly assigning node information
     (properties, firewall configuration, vulnerabilities)
     to the nodes of a given graph structure"""
 
+    if vulnerabilities is None:
+        vulnerabilities = dict([])
     # convert node IDs to string
     graph = nx.relabel_nodes(graph, {i: str(i) for i in graph.nodes})
 

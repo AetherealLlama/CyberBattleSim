@@ -2,14 +2,16 @@
 # Licensed under the MIT License.
 
 """ Generating random graphs"""
-from cyberbattle.simulation.model import Identifiers, NodeID, CredentialID, PortName, FirewallConfiguration, FirewallRule, RulePermission
-import numpy as np
-import networkx as nx
-from cyberbattle.simulation import model as m
 import random
+from collections import defaultdict
 from typing import List, Optional, Tuple, DefaultDict
 
-from collections import defaultdict
+import networkx as nx
+import numpy as np
+
+from cyberbattle.simulation import model as m
+from cyberbattle.simulation.model import Identifiers, NodeID, CredentialID, PortName, FirewallConfiguration, \
+    FirewallRule, RulePermission
 
 ENV_IDENTIFIERS = Identifiers(
     properties=[
@@ -29,11 +31,7 @@ ENV_IDENTIFIERS = Identifiers(
 
 def generate_random_traffic_network(
     n_clients: int = 200,
-    n_servers={
-        "SMB": 1,
-        "HTTP": 1,
-        "RDP": 1,
-    },
+    n_servers=None,
     seed: Optional[int] = 0,
     tolerance: np.float32 = np.float32(1e-3),
     alpha=np.array([(0.1, 0.3), (0.18, 0.09)], dtype=float),
@@ -45,8 +43,8 @@ def generate_random_traffic_network(
 
     Arguments:
         n_clients: number of workstation nodes that can initiate sessions with server nodes
-        n_servers: dictionary indicatin the numbers of each nodes listening to each protocol
-        seed: seed for the psuedo-random number generator
+        n_servers: dictionary indicating the numbers of each nodes listening to each protocol
+        seed: seed for the pseudo-random number generator
         tolerance: absolute tolerance for bounding the edge probabilities in [tolerance, 1-tolerance]
         alpha: beta distribution parameters alpha such that E(edge prob) = alpha / beta
         beta: beta distribution parameters beta such that E(edge prob) = alpha / beta
@@ -54,6 +52,13 @@ def generate_random_traffic_network(
     Returns:
         (nx.classes.multidigraph.MultiDiGraph): the randomly generated network from the hierarchical block model
     """
+    if n_servers is None:
+        n_servers = {
+            "SMB": 1,
+            "HTTP": 1,
+            "RDP": 1,
+        }
+
     edges_labels = defaultdict(set)  # set backed multidict
 
     for protocol in list(n_servers.keys()):
@@ -160,8 +165,8 @@ def cyberbattle_model_from_traffic_graph(
                 return assign_new_valid_password(node, port)
 
     def add_leak_neighbors_vulnerability(
-            node_id: m.NodeID,
-            library: m.VulnerabilityLibrary = {}) -> m.VulnerabilityLibrary:
+        node_id: m.NodeID,
+        library: m.VulnerabilityLibrary = {}) -> m.VulnerabilityLibrary:
         """Create random vulnerabilities
         that reveals immediate traffic neighbors from a given node"""
 

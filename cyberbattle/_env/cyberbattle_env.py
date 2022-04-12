@@ -179,7 +179,7 @@ def sourcenode_of_action(x: Action) -> int:
 
 
 class EnvironmentBounds(NamedTuple):
-    """Define global bounds posisibly shared by a set of CyberBattle gym environments
+    """Define global bounds possibly shared by a set of CyberBattle gym environments
 
     maximum_node_count            - Maximum number of nodes in a given network
     maximum_total_credentials     - Maximum number of credentials in a given network
@@ -263,7 +263,7 @@ class CyberBattleEnv(gym.Env):
        - How many new nodes were discovered
        - Whether lateral move succeeded
        - Whether customer data were found
-       - Whehter escalation attempt succeeded
+       - Whether escalation attempt succeeded
        - Matrix of all node properties discovered so far
        - List of leaked credentials
 
