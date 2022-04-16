@@ -105,7 +105,7 @@ def cyberbattle_model_from_traffic_graph(
     between the two nodes with the protocol specified in the edge label.
 
     Returns a CyberBattle network with the same nodes and implanted vulnerabilities
-    to be used to instantiate a CyverBattleSim gym.
+    to be used to instantiate a CyberBattleSim gym.
 
     Arguments:
 
@@ -286,8 +286,8 @@ def new_environment(n_servers_per_protocol: int):
                                                   "HTTP": n_servers_per_protocol,
                                                   "RDP": n_servers_per_protocol,
                                               },
-                                              alpha=[(1, 1), (0.2, 0.5)],
-                                              beta=[(1000, 10), (10, 100)])
+                                              alpha=np.array([(1, 1), (0.2, 0.5)]),
+                                              beta=np.array((1000, 10), (10, 100)))
 
     network = cyberbattle_model_from_traffic_graph(
         traffic,

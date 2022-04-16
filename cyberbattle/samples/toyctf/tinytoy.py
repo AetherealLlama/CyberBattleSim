@@ -56,7 +56,6 @@ nodes = {
             ),
         )),
 
-
     'client': m.NodeInfo(
         services=[],
         properties=["CLIENT:Win10"],

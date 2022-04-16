@@ -11,9 +11,9 @@ RUN export TERM=dumb && ./init.sh -n
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 2
 ENV PATH="/usr/bin:${PATH}"
 
-COPY . .
-
 RUN pip install -U 'stable-baselines3[extra]'
+
+COPY . .
 
 # To build the docker image:
 #   docker build -t cyberbattle:1.1 .
