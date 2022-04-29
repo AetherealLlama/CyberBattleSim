@@ -67,7 +67,7 @@ class CommandControl:
 
     def plot_nodes(self) -> None:
         """Plot the sub-graph of nodes either so far
-        discovered  (their ID is knowned by the agent)
+        discovered  (their ID is known by the agent)
         or owned (i.e. where the attacker client is installed)."""
         discovered_nodes = [node_id for node_id, _ in self._actuator.discovered_nodes()]
         sub_graph = self.__environment.network.subgraph(discovered_nodes)

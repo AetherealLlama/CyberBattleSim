@@ -351,7 +351,7 @@ class AbstractAction(Feature):
     def specialize_to_gymaction(self, source_node: np.int32, observation, abstract_action_index: np.int32
                                 ) -> Optional[cyberbattle_env.Action]:
         """Specialize an abstract "q"-action into a gym action.
-        Return an adjustement weight (1.0 if the choice was deterministic, 1/n if a choice was made out of n)
+        Return an adjustment weight (1.0 if the choice was deterministic, 1/n if a choice was made out of n)
         and the gym action"""
 
         abstract_action_index_int = int(abstract_action_index)

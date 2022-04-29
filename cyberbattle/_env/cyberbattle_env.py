@@ -107,7 +107,7 @@ Observation = TypedDict(
         # Encoding of the credential cache of shape: (credential_cache_length, 2)
         #
         # Each row represent a discovered credential, the row index is the
-        # the credential index is given by the row index (i.e. order of discovery)
+        # credential index is given by the row index (i.e. order of discovery)
         # A row is of the form: (target_node_discover_index, port_index)
         'credential_cache_matrix': numpy.ndarray,
 
@@ -313,6 +313,10 @@ class CyberBattleEnv(gym.Env):
     def _bounds(self) -> EnvironmentBounds:
         return self.__bounds
 
+    @property
+    def bounds(self) -> EnvironmentBounds:
+        return self.__bounds
+
     def validate_environment(self, environment: model.Environment):
         """Validate that the size of the network and associated constants fits within
         the dimensions bounds set for the CyberBattle gym environment"""
@@ -464,17 +468,17 @@ class CyberBattleEnv(gym.Env):
         self.observation_space = spaces.Dict({
             # how many new nodes were discovered
             'newly_discovered_nodes_count': spaces.Discrete(NA + maximum_node_count),
-            # successuflly moved to the target node (1) or not (0)
+            # successfully moved to the target node (1) or not (0)
             'lateral_move': spaces.Discrete(2),
             # boolean: 1 if customer secret data were discovered, 0 otherwise
-            'customer_data_found': spaces.MultiBinary(2),
+            'customer_data_found': spaces.Discrete(2),
             # whether an attempted probing succeeded or not
             'probe_result': spaces.Discrete(3),
-            # Esclation result
-            'escalation': spaces.MultiDiscrete(model.PrivilegeLevel.MAXIMUM + 1),
+            # Escalation result
+            'escalation': spaces.Discrete(model.PrivilegeLevel.MAXIMUM + 1),
             # Array of slots describing credentials that were leaked
             'leaked_credentials': spaces.Tuple(
-                # the 1st component indicates if the slot is used or not (SLOT_USED or SLOT_UNSUED)
+                # the 1st component indicates if the slot is used or not (SLOT_USED or SLOT_UNUSED)
                 # the 2nd component gives the credential unique index (external identifier exposed to the agent)
                 # the 3rd component gives the target node ID
                 # the 4th component gives the port number
@@ -483,15 +487,15 @@ class CyberBattleEnv(gym.Env):
                 #  To use the credential as a parameter to another action the agent should refer to it by its index
                 #  e.g. (UNUSED_SLOT,_,_,_) encodes an empty slot
                 #       (USED_SLOT,1,56,22) encodes a leaked credential identified by its index 1,
-                #          that was used to authenticat to target node 56 on port number 22 (e.g. SSH)
+                #          that was used to authenticate to target node 56 on port number 22 (e.g. SSH)
 
                 [spaces.MultiDiscrete([NA + 1, self.__bounds.maximum_total_credentials,
                                        maximum_node_count, port_count])]
                 * self.__bounds.maximum_discoverable_credentials_per_action),
 
             # Boolean bitmasks defining the subset of valid actions in the current state.
-            # (1 for valid, 0 for invalid). Note: a valid action is not necessariliy guaranteed to succeed.
-            # For instance it is a valid action to attempt to connect to a remote node with incorrect credentials,
+            # (1 for valid, 0 for invalid). Note: a valid action is not necessarily guaranteed to succeed.
+            # For instance, it is a valid action to attempt to connect to a remote node with incorrect credentials,
             # even though such action would 'fail' and potentially yield a negative reward.
             "action_mask": spaces.Dict(action_mask_spaces),
 
@@ -511,7 +515,7 @@ class CyberBattleEnv(gym.Env):
             # Encoding of the credential cache of shape: (credential_cache_length, 2)
             #
             # Each row represent a discovered credential, the row index is the
-            # the credential index is given by the row index (i.e. order of discovery)
+            # credential index is given by the row index (i.e. order of discovery)
             # A row is of the form: (target_node_discover_index, port_index)
             'credential_cache_matrix': spaces.Tuple(
                 [spaces.MultiDiscrete([maximum_node_count, port_count])] * maximum_total_credentials),

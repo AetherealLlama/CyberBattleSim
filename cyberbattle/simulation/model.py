@@ -149,6 +149,7 @@ class AdminEscalation(PrivilegeEscalation):
 
 class ProbeSucceeded(VulnerabilityOutcome):
     """Probing succeeded"""
+    discovered_properties: List[PropertyName]
 
     def __init__(self, discovered_properties: List[PropertyName]):
         self.discovered_properties = discovered_properties
@@ -171,18 +172,24 @@ class CachedCredential(NamedTuple):
 
 class LeakedCredentials(VulnerabilityOutcome):
     """A set of credentials obtained by exploiting a vulnerability"""
-
     credentials: List[CachedCredential]
 
     def __init__(self, credentials: List[CachedCredential]):
         self.credentials = credentials
 
+    def __repr__(self) -> str:
+        return f'LeakedCredentials(credentials={self.credentials})'
+
 
 class LeakedNodesId(VulnerabilityOutcome):
     """A set of node IDs obtained by exploiting a vulnerability"""
+    nodes: List[NodeID]
 
     def __init__(self, nodes: List[NodeID]):
         self.nodes = nodes
+
+    def __repr__(self) -> str:
+        return f'LeakedNodesId(nodes={self.nodes})'
 
 
 VulnerabilityOutcomes = Union[
