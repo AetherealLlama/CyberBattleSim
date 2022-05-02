@@ -385,6 +385,7 @@ class CyberBattleEnv(gym.Env):
                  maximum_total_credentials: int = 1000,
                  maximum_node_count: int = 100,
                  maximum_discoverable_credentials_per_action: int = 5,
+                 maximum_steps: Optional[int] = None,
                  defender_agent: Optional[DefenderAgent] = None,
                  attacker_goal: Optional[AttackerGoal] = AttackerGoal(own_atleast_percent=1.0),
                  defender_goal=DefenderGoal(eviction=True),
@@ -421,6 +422,7 @@ class CyberBattleEnv(gym.Env):
         self.__WINNING_REWARD = winning_reward
         self.__LOSING_REWARD = losing_reward
         self.__renderer = renderer
+        self.__maximum_steps = maximum_steps
 
         self.viewer = None
 
@@ -1047,6 +1049,9 @@ class CyberBattleEnv(gym.Env):
             raise RuntimeError("new episode must be started with env.reset()")
 
         self.__stepcount += 1
+        if self.__maximum_steps is not None and self.__stepcount > self.__maximum_steps:
+            self.__done = True
+
         duration = time.time() - self.__start_time
         try:
             result = self.__execute_action(action)
@@ -1078,6 +1083,8 @@ class CyberBattleEnv(gym.Env):
             duration_in_ms=duration,
             step_count=self.__stepcount,
             network_availability=self._defender_actuator.network_availability)
+        if self.__maximum_steps is not None and self.__stepcount > self.__maximum_steps:
+            reward -= 5000.0
         self.__episode_rewards.append(reward)
 
         return observation, reward, self.__done, info
