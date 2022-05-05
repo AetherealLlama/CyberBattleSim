@@ -54,13 +54,7 @@ class SB3ActionModel(spaces.MultiDiscrete):
     @staticmethod
     def get_gym_action(action: np.ndarray) -> cyberbattle_env.Action:
         assert len(action) >= 7, "Invalid action vector"
-        action_type = action[0]
-        source_node = action[1]
-        target_node = action[2]
-        local_attack_id = action[3]
-        remote_attack_id = action[4]
-        port = action[5]
-        credential_id = action[6]
+        action_type, source_node, target_node, local_attack_id, remote_attack_id, port, credential_id = action
 
         if action_type == 0:
             return {'local_vulnerability': np.array([source_node, local_attack_id])}
