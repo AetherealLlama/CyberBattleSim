@@ -317,6 +317,10 @@ class CyberBattleEnv(gym.Env):
     def bounds(self) -> EnvironmentBounds:
         return self.__bounds
 
+    @property
+    def last_observation(self) -> Observation:
+        return self._last_obs
+
     def validate_environment(self, environment: model.Environment):
         """Validate that the size of the network and associated constants fits within
         the dimensions bounds set for the CyberBattle gym environment"""
@@ -540,6 +544,8 @@ class CyberBattleEnv(gym.Env):
 
         # reward_range: A tuple corresponding to the min and max possible rewards
         self.reward_range = (-float('inf'), float('inf'))
+
+        self._last_obs = self.__get_blank_observation()
 
     def __index_to_local_vulnerabilityid(self, vulnerability_index: int) -> model.VulnerabilityID:
         """Return the local vulnerability identifier from its internal encoding index"""
@@ -1087,6 +1093,8 @@ class CyberBattleEnv(gym.Env):
             reward -= 5000.0
         self.__episode_rewards.append(reward)
 
+        self._last_obs = observation
+
         return observation, reward, self.__done, info
 
     def reset(self) -> Observation:
@@ -1097,6 +1105,7 @@ class CyberBattleEnv(gym.Env):
         observation['discovered_nodes_properties'] = self.__get_property_matrix()
         observation['nodes_privilegelevel'] = self.__get_privilegelevel_array()
         self.__owned_nodes_indices_cache = None
+        self._last_obs = observation
         return observation
 
     def render_as_fig(self):

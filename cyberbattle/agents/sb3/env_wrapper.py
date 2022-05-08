@@ -6,7 +6,7 @@ from gym import spaces
 
 import cyberbattle.agents.sb3.feature as f
 from cyberbattle._env import cyberbattle_env
-from cyberbattle._env.cyberbattle_env import EnvironmentBounds, CyberBattleEnv
+from cyberbattle._env.cyberbattle_env import EnvironmentBounds, CyberBattleEnv, Observation
 
 
 def mask_fn(env: gym.Env) -> np.ndarray:
@@ -33,8 +33,31 @@ def mask_fn(env: gym.Env) -> np.ndarray:
                     if action_mask['connect'][source_node, target_node, port_id, cred_id] == 1:
                         wrapper_action_mask[2, source_node, target_node, :, :, port_id, cred_id] = 1.0
 
-    # wrapper_action_mask = wrapper_action_mask.astype(bool)
+    wrapper_action_mask = wrapper_action_mask.astype(bool)
     return wrapper_action_mask
+
+
+def mask_fn_2(env: gym.Env) -> np.ndarray:
+    obs: Observation = env.last_observation
+    ep: EnvironmentBounds = env.bounds
+
+    action_type = np.array([True] * 3)
+
+    source_nodes = np.array([False] * ep.maximum_node_count)
+    source_nodes[f.owned_nodes(obs)] = True
+
+    target_nodes = np.concatenate((np.array([True] * obs['discovered_node_count']),
+                                   np.array([False] * (ep.maximum_node_count - obs['discovered_node_count']))))
+
+    local_attack = np.array([True] * ep.local_attacks_count)
+    remote_attack = np.array([True] * ep.remote_attacks_count)
+    ports = np.array([True] * ep.port_count)
+
+    credentials = np.concatenate((np.array([True] * obs['credential_cache_length']),
+                                  np.array([False] * (ep.maximum_total_credentials - obs['credential_cache_length']))))
+
+    return np.concatenate((action_type, source_nodes, target_nodes, local_attack,
+                           remote_attack, ports, credentials))
 
 
 class SB3ActionModel(spaces.MultiDiscrete):
