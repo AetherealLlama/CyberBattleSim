@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import Tuple, Optional
 
 import gym
@@ -39,6 +38,29 @@ def mask_fn(env: gym.Env) -> np.ndarray:
     return wrapper_action_mask
 
 
+def mask_fn_2(env: gym.Env) -> np.ndarray:
+    obs: Observation = env.last_observation
+    ep: EnvironmentBounds = env.bounds
+
+    action_type = np.array([True] * 3)
+
+    source_nodes = np.array([False] * ep.maximum_node_count)
+    source_nodes[f.owned_nodes(obs)] = True
+
+    target_nodes = np.concatenate((np.array([True] * obs['discovered_node_count']),
+                                   np.array([False] * (ep.maximum_node_count - obs['discovered_node_count']))))
+
+    local_attack = np.array([True] * ep.local_attacks_count)
+    remote_attack = np.array([True] * ep.remote_attacks_count)
+    ports = np.array([True] * ep.port_count)
+
+    credentials = np.concatenate((np.array([True] * obs['credential_cache_length']),
+                                  np.array([False] * (ep.maximum_total_credentials - obs['credential_cache_length']))))
+
+    return np.concatenate((action_type, source_nodes, target_nodes, local_attack,
+                           remote_attack, ports, credentials))
+
+
 class SB3MultiDiscreteActionModel(spaces.MultiDiscrete):
     def __init__(self, ep: EnvironmentBounds):
         self.ep = ep
@@ -54,8 +76,7 @@ class SB3MultiDiscreteActionModel(spaces.MultiDiscrete):
         )
         super().__init__(self.nvec)
 
-    @staticmethod
-    def get_gym_action(action: np.ndarray) -> cyberbattle_env.Action:
+    def get_gym_action(self, action: np.ndarray) -> cyberbattle_env.Action:
         assert isinstance(action, np.ndarray), "action must be np array"
         assert len(action) >= 7, "Invalid action vector"
         action_type, source_node, target_node, local_attack_id, remote_attack_id, port, credential_id = action
@@ -110,8 +131,8 @@ class SB3EnvWrapper(gym.Wrapper):
 
         self.ep = ep
 
-        # self._action_space = SB3MultiDiscreteActionModel(self.ep)
-        self._action_space = SB3DiscreteActionModel(self.ep)
+        self._action_space = SB3MultiDiscreteActionModel(self.ep)
+        # self._action_space = SB3DiscreteActionModel(self.ep)
         self._observation_space = f.ConcatFeatures(self.ep, [
             f.FeatureGlobalNodesProperties(ep),
             f.FeatureGlobalCredentialCacheLength(ep),
