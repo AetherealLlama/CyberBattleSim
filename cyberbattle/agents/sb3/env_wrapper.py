@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Tuple, Optional
 
 import gym
@@ -34,37 +35,15 @@ def mask_fn(env: gym.Env) -> np.ndarray:
                         wrapper_action_mask[2, source_node, target_node, :, :, port_id, cred_id] = 1.0
 
     wrapper_action_mask = wrapper_action_mask.astype(bool)
+    wrapper_action_mask = wrapper_action_mask.flatten()
     return wrapper_action_mask
 
 
-def mask_fn_2(env: gym.Env) -> np.ndarray:
-    obs: Observation = env.last_observation
-    ep: EnvironmentBounds = env.bounds
-
-    action_type = np.array([True] * 3)
-
-    source_nodes = np.array([False] * ep.maximum_node_count)
-    source_nodes[f.owned_nodes(obs)] = True
-
-    target_nodes = np.concatenate((np.array([True] * obs['discovered_node_count']),
-                                   np.array([False] * (ep.maximum_node_count - obs['discovered_node_count']))))
-
-    local_attack = np.array([True] * ep.local_attacks_count)
-    remote_attack = np.array([True] * ep.remote_attacks_count)
-    ports = np.array([True] * ep.port_count)
-
-    credentials = np.concatenate((np.array([True] * obs['credential_cache_length']),
-                                  np.array([False] * (ep.maximum_total_credentials - obs['credential_cache_length']))))
-
-    return np.concatenate((action_type, source_nodes, target_nodes, local_attack,
-                           remote_attack, ports, credentials))
-
-
-class SB3ActionModel(spaces.MultiDiscrete):
+class SB3MultiDiscreteActionModel(spaces.MultiDiscrete):
     def __init__(self, ep: EnvironmentBounds):
         self.ep = ep
         # action type x source node x target x local attack x remote attack x port x cred id
-        super(SB3ActionModel, self).__init__([
+        self.nvec = (
             3,
             self.ep.maximum_node_count,
             self.ep.maximum_node_count,
@@ -72,12 +51,48 @@ class SB3ActionModel(spaces.MultiDiscrete):
             self.ep.remote_attacks_count,
             self.ep.port_count,
             self.ep.maximum_total_credentials,
-        ])
+        )
+        super().__init__(self.nvec)
 
     @staticmethod
     def get_gym_action(action: np.ndarray) -> cyberbattle_env.Action:
+        assert isinstance(action, np.ndarray), "action must be np array"
         assert len(action) >= 7, "Invalid action vector"
         action_type, source_node, target_node, local_attack_id, remote_attack_id, port, credential_id = action
+
+        if action_type == 0:
+            return {'local_vulnerability': np.array([source_node, local_attack_id])}
+        elif action_type == 1:
+            return {'remote_vulnerability': np.array([source_node, target_node, remote_attack_id])}
+        elif action_type == 2:
+            return {'connect': np.array([source_node, target_node, port, credential_id])}
+        else:
+            raise ValueError
+
+
+class SB3DiscreteActionModel(spaces.Discrete):
+    def __init__(self, ep: EnvironmentBounds):
+        self.ep = ep
+
+        # action type x source node x target x local attack x remote attack x port x cred id
+        self.nvec = (
+            3,
+            self.ep.maximum_node_count,
+            self.ep.maximum_node_count,
+            self.ep.local_attacks_count,
+            self.ep.remote_attacks_count,
+            self.ep.port_count,
+            self.ep.maximum_total_credentials,
+        )
+        super().__init__(np.prod(self.nvec))
+
+        self.mapping = tuple(np.ndindex(self.nvec))
+
+    def get_gym_action(self, action: int) -> cyberbattle_env.Action:
+        assert 0 <= action < np.prod(self.nvec)
+
+        action_vec = self.mapping[action]
+        action_type, source_node, target_node, local_attack_id, remote_attack_id, port, credential_id = action_vec
 
         if action_type == 0:
             return {'local_vulnerability': np.array([source_node, local_attack_id])}
@@ -95,7 +110,8 @@ class SB3EnvWrapper(gym.Wrapper):
 
         self.ep = ep
 
-        self._action_space = SB3ActionModel(self.ep)
+        # self._action_space = SB3MultiDiscreteActionModel(self.ep)
+        self._action_space = SB3DiscreteActionModel(self.ep)
         self._observation_space = f.ConcatFeatures(self.ep, [
             f.FeatureGlobalNodesProperties(ep),
             f.FeatureGlobalCredentialCacheLength(ep),
@@ -110,8 +126,9 @@ class SB3EnvWrapper(gym.Wrapper):
         self.last_obs = obs
         return self.observation(obs)
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, Optional[cyberbattle_env.StepInfo]]:
-        action = SB3ActionModel.get_gym_action(action)
+    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Optional[cyberbattle_env.StepInfo]]:
+        # action = SB3ActionModel.get_gym_action(action)
+        action = self.action_space.get_gym_action(action)
         if self.env.is_action_valid(action, None):
             obs, reward, done, info = self.env.step(action)
             self.last_obs = obs
