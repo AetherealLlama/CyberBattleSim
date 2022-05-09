@@ -1059,6 +1059,14 @@ class CyberBattleEnv(gym.Env):
             self.__done = True
 
         duration = time.time() - self.__start_time
+        if not self.is_action_valid(action):
+            info = StepInfo(
+                description='CyberBattle simulation',
+                duration_in_ms=duration,
+                step_count=self.__stepcount,
+                network_availability=self._defender_actuator.network_availability)
+            return self.last_observation, -5.0, self.__done, info
+
         try:
             result = self.__execute_action(action)
             observation, reward = self.__observation_reward_from_action_result(result)

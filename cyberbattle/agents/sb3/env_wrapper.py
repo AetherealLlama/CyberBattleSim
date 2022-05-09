@@ -150,16 +150,8 @@ class SB3EnvWrapper(gym.Wrapper):
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, Optional[cyberbattle_env.StepInfo]]:
         # action = SB3ActionModel.get_gym_action(action)
         action = self.action_space.get_gym_action(action)
-        if self.env.is_action_valid(action, None):
-            obs, reward, done, info = self.env.step(action)
-            self.last_obs = obs
-            return self.observation(obs), reward, done, info
-        else:
-            return self.observation(self.last_obs), -5, False, cyberbattle_env.StepInfo(
-                description='CyberBattle simulation',
-                duration_in_ms=0.0,
-                step_count=0,
-                network_availability=1.0)
+        obs, reward, done, info = self.env.step(action)
+        return self.observation(obs), reward, done, info
 
     def observation(self, obs: cyberbattle_env.Observation) -> np.ndarray:
         return self._observation_space.get(obs)
