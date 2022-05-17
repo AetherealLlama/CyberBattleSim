@@ -45,7 +45,7 @@ class ConcatFeatures(Feature):
 
 class FeatureGlobalNodesProperties(Feature):
     def __init__(self, ep: EnvironmentBounds):
-        super(FeatureGlobalNodesProperties, self).__init__(ep, [3] * ep.property_count * ep.maximum_node_count)
+        super(FeatureGlobalNodesProperties, self).__init__(ep, [4] * ep.property_count * ep.maximum_node_count)
 
     def get(self, obs: cyberbattle_env.Observation) -> np.ndarray:
         # features = [

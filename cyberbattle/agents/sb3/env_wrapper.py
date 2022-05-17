@@ -1,7 +1,8 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Any
 
 import gym
 import numpy as np
+import torch
 from gym import spaces
 
 import cyberbattle.agents.sb3.feature as f
@@ -34,7 +35,6 @@ def mask_fn(env: gym.Env) -> np.ndarray:
                         wrapper_action_mask[2, source_node, target_node, :, :, port_id, cred_id] = 1.0
 
     wrapper_action_mask = wrapper_action_mask.astype(bool)
-    wrapper_action_mask = wrapper_action_mask.flatten()
     return wrapper_action_mask
 
 
@@ -156,16 +156,115 @@ class SB3EnvWrapper(gym.Wrapper):
     def observation(self, obs: cyberbattle_env.Observation) -> np.ndarray:
         return self._observation_space.get(obs)
 
-    # def is_action_valid(self, action: cyberbattle_env.Action) -> bool:
-    #     action_mask: cyberbattle_env.ActionMask = self.env.compute_action_mask()
-    #     if 'local_vulnerability' in action:
-    #         if action_mask['local_vulnerability'][tuple(action['local_vulnerability'])] == 1:
-    #             return True
-    #     elif 'remote_vulnerability' in action:
-    #         if action_mask['remote_vulnerability'][tuple(action['remote_vulnerability'])] == 1:
-    #             return True
-    #     elif 'connect' in action:
-    #         if action_mask['connect'][tuple(action['connect'])] == 1:
-    #             return True
-    #
-    #     return False
+    def valid_action_trees(self) -> np.ndarray:
+        action_mask: cyberbattle_env.ActionMask = self.env.compute_action_mask()
+        valid_action_trees = {}
+
+        # this is ugly as fuck innit
+        local_vulnerabilities = np.transpose((action_mask['local_vulnerability'] > 0).nonzero())
+        if len(local_vulnerabilities) > 0:
+            local_vulnerabilities_tree = {}
+            for i in local_vulnerabilities:
+                source_node, vuln_id = i
+                if source_node not in local_vulnerabilities_tree:
+                    local_vulnerabilities_tree[source_node] = {}
+                local_vulnerabilities_tree[source_node][vuln_id] = {}
+            valid_action_trees[0] = local_vulnerabilities_tree
+
+        remote_vulnerabilities = np.transpose((action_mask['remote_vulnerability'] > 0).nonzero())
+        if len(remote_vulnerabilities) > 0:
+            remote_vulnerabilities_tree = {}
+            for i in remote_vulnerabilities:
+                source_node, target_node, vuln_id = i
+                if source_node not in remote_vulnerabilities_tree:
+                    remote_vulnerabilities_tree[source_node] = {}
+                if target_node not in remote_vulnerabilities_tree[source_node]:
+                    remote_vulnerabilities_tree[source_node][target_node] = {}
+                remote_vulnerabilities_tree[source_node][target_node][vuln_id] = {}
+            valid_action_trees[1] = remote_vulnerabilities_tree
+
+        connect = np.transpose((action_mask['connect'] > 0).nonzero())
+        if len(connect) > 0:
+            connect_tree = {}
+            for i in connect:
+                source_node, target_node, port_id, creds = i
+                if source_node not in connect_tree:
+                    connect_tree[source_node] = {}
+                if target_node not in connect_tree[source_node]:
+                    connect_tree[source_node][target_node] = {}
+                if port_id not in connect_tree[source_node][target_node]:
+                    connect_tree[source_node][target_node][port_id] = {}
+                connect_tree[source_node][target_node][port_id][creds] = {}
+            valid_action_trees[2] = connect_tree
+
+        return np.array([valid_action_trees])
+        # return vat_to_array(valid_action_trees)
+
+
+def vat_to_array(vat: Dict) -> np.ndarray:
+    ret = []
+    if 0 in vat:
+        local_vulnerabilities = vat[0]
+        for source_node, i in local_vulnerabilities.items():
+            for vuln_id in i.keys():
+                ret.append([0, source_node, 0, vuln_id, 0, 0, 0])
+
+    if 1 in vat:
+        remote_vulnerabilities = vat[1]
+        for source_node, i in remote_vulnerabilities.items():
+            for target_node, j in i.items():
+                for vuln_id in j.keys():
+                    ret.append([1, source_node, target_node, 0, vuln_id, 0, 0])
+
+    if 2 in vat:
+        connect = vat[2]
+        for source_node, i in connect.items():
+            for target_node, j in i.items():
+                for port, l in j.items():
+                    for cred in l.keys():
+                        ret.append([2, source_node, target_node, 0, 0, port, cred])
+    ret = np.array(ret)
+    # ret = ret.flatten()
+    return ret
+
+
+def array_to_vat(arr: np.ndarray) -> Dict:
+    # arr = arr.reshape(int(len(arr) / 7), 7)
+    local_vulnerabilities = [a for a in arr if a[0] == 0]
+    remote_vulnerabilities = [a for a in arr if a[0] == 1]
+    connect = [a for a in arr if a[0] == 2]
+    ret = {}
+    if len(local_vulnerabilities) > 0:
+        local_vulnerabilities_tree = {}
+        for i in local_vulnerabilities:
+            _, source_node, _, vuln_id, _, _, _ = i
+            if source_node not in local_vulnerabilities_tree:
+                local_vulnerabilities_tree[source_node] = {}
+            local_vulnerabilities_tree[source_node][vuln_id] = {}
+        ret[0] = local_vulnerabilities_tree
+
+    if len(remote_vulnerabilities) > 0:
+        remote_vulnerabilities_tree = {}
+        for i in remote_vulnerabilities:
+            _, source_node, target_node, _, vuln_id, _, _ = i
+            if source_node not in remote_vulnerabilities_tree:
+                remote_vulnerabilities_tree[source_node] = {}
+            if target_node not in remote_vulnerabilities_tree[source_node]:
+                remote_vulnerabilities_tree[source_node][target_node] = {}
+            remote_vulnerabilities_tree[source_node][target_node][vuln_id] = {}
+        ret[1] = remote_vulnerabilities_tree
+
+    if len(connect) > 0:
+        connect_tree = {}
+        for i in connect:
+            _, source_node, target_node, _, _, port_id, creds = i
+            if source_node not in connect_tree:
+                connect_tree[source_node] = {}
+            if target_node not in connect_tree[source_node]:
+                connect_tree[source_node][target_node] = {}
+            if port_id not in connect_tree[source_node][target_node]:
+                connect_tree[source_node][target_node][port_id] = {}
+            connect_tree[source_node][target_node][port_id][creds] = {}
+        ret[2] = connect_tree
+
+    return ret
