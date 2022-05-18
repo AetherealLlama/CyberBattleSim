@@ -45,6 +45,7 @@ class VATActorCriticPolicy(BasePolicy):
         observation_space: gym.spaces.Space,
         action_space: gym.spaces.Space,
         lr_schedule: Schedule,
+        device: Optional[th.device] = None,
         net_arch: Optional[List[Union[int, Dict[str, List[int]]]]] = None,
         activation_fn: Type[nn.Module] = nn.Tanh,
         ortho_init: bool = True,
@@ -87,7 +88,7 @@ class VATActorCriticPolicy(BasePolicy):
 
         self.normalize_images = normalize_images
         # Action distribution
-        self.action_dist = make_vat_proba_distribution(action_space, self.device)
+        self.action_dist = make_vat_proba_distribution(action_space, device)
 
         self._build(lr_schedule)
 
