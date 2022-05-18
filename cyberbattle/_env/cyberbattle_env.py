@@ -1084,8 +1084,8 @@ class CyberBattleEnv(gym.Env):
             elif self.__defender_goal_reached():
                 self.__done = True
                 reward = self.__LOSING_REWARD
-            else:
-                reward = max(0., reward)
+            # else:
+            #     reward = max(0., reward)
 
         except OutOfBoundIndexError as error:
             logging.warning('Invalid entity index: ' + error.__str__())
