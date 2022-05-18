@@ -87,7 +87,7 @@ class VATActorCriticPolicy(BasePolicy):
 
         self.normalize_images = normalize_images
         # Action distribution
-        self.action_dist = make_vat_proba_distribution(action_space)
+        self.action_dist = make_vat_proba_distribution(action_space, self.device)
 
         self._build(lr_schedule)
 

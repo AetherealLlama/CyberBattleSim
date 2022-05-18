@@ -22,11 +22,12 @@ class VATMultiCategoricalDistribution(VATDistribution):
     :param action_dims: List of sizes of discrete action spaces
     """
 
-    def __init__(self, action_dims: List[int]):
+    def __init__(self, action_dims: List[int], device: th.device):
         super().__init__()
         self.distributions: List[MaskableCategorical] = []
         self.valid_action_trees: Optional[np.ndarray] = None
         self.action_dims = action_dims
+        self.device = device
 
     def proba_distribution_net(self, latent_dim: int) -> nn.Module:
         """
@@ -54,24 +55,22 @@ class VATMultiCategoricalDistribution(VATDistribution):
     def log_prob(self, actions: th.Tensor) -> Tuple[th.Tensor, th.Tensor]:
         assert len(self.distributions) > 0, "Must set distribution parameters"
 
-        logp = th.zeros([self.valid_action_trees.shape[0]])
-        entropy = th.zeros([self.valid_action_trees.shape[0]])
+        logp = th.zeros([self.valid_action_trees.shape[0]]).to(self.device)
+        entropy = th.zeros([self.valid_action_trees.shape[0]]).to(self.device)
         split_dists = [VATMultiCategoricalDistribution._split_categorical(d) for d in self.distributions]
         # transpose it
         split_dists = list(map(list, zip(*split_dists)))
         for idx, (action, vat, dists) in enumerate(zip(actions, self.valid_action_trees, split_dists)):
-            action_logp, action_entropy = VATMultiCategoricalDistribution._logp_and_entropy_for_action(action, vat,
-                                                                                                       dists)
+            action_logp, action_entropy = self._logp_and_entropy_for_action(action, vat, dists)
             logp[idx] = action_logp.sum()
             entropy[idx] = action_logp.sum()
 
         return logp, entropy
 
-    @staticmethod
-    def _logp_and_entropy_for_action(action: th.Tensor, vat: np.ndarray, dists: List[MaskableCategorical]):
+    def _logp_and_entropy_for_action(self, action: th.Tensor, vat: np.ndarray, dists: List[MaskableCategorical]):
         assert isinstance(vat[0], Dict)
-        logp = th.zeros([len(action)])
-        entropy = th.zeros([len(action)])
+        logp = th.zeros([len(action)]).to(self.device)
+        entropy = th.zeros([len(action)]).to(self.device)
 
         subtree = vat[0]
         action_type, source_node, target_node, local_vuln, remote_vuln, port, cred = range(7)
@@ -146,8 +145,8 @@ class VATMultiCategoricalDistribution(VATDistribution):
     def _mask_and_sample(self, deterministic=False) -> th.Tensor:
         assert self.valid_action_trees is not None
 
-        actions = th.zeros([self.valid_action_trees.shape[0], len(self.action_dims)], dtype=th.int)
-        logp = th.zeros([len(self.action_dims)])
+        actions = th.zeros([self.valid_action_trees.shape[0], len(self.action_dims)], dtype=th.int).to(self.device)
+        logp = th.zeros([len(self.action_dims)]).to(self.device)
         split_dists = [VATMultiCategoricalDistribution._split_categorical(d) for d in self.distributions]
         # transpose it
         split_dists = list(map(list, zip(*split_dists)))
@@ -164,8 +163,8 @@ class VATMultiCategoricalDistribution(VATDistribution):
                                      deterministic: bool) -> Tuple[th.Tensor, th.Tensor]:
         assert isinstance(vat[0], Dict)
 
-        action = th.zeros(len(self.action_dims), dtype=th.int)
-        logp = th.zeros(len(self.action_dims))
+        action = th.zeros(len(self.action_dims), dtype=th.int).to(self.device)
+        logp = th.zeros(len(self.action_dims)).to(self.device)
         subtree: Dict = vat[0]
         action_type, source_node, target_node, local_vuln, remote_vuln, port, cred = range(7)
         sampled_type, sampled_type_logp, _ = self._mask_and_sample_action_part(dists[action_type], subtree,
@@ -208,8 +207,8 @@ class VATMultiCategoricalDistribution(VATDistribution):
         return [MaskableCategorical(logits=logits) for logits in dist.logits]
 
 
-def make_vat_proba_distribution(action_space: spaces.Space) -> VATDistribution:
+def make_vat_proba_distribution(action_space: spaces.Space, device: th.device) -> VATDistribution:
     if isinstance(action_space, spaces.MultiDiscrete):
-        return VATMultiCategoricalDistribution(action_space.nvec)
+        return VATMultiCategoricalDistribution(action_space.nvec, device)
     else:
         raise NotImplementedError
