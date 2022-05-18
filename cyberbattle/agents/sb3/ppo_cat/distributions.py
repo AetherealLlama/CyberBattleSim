@@ -89,7 +89,7 @@ class VATMultiCategoricalDistribution(VATDistribution):
         other_parts = {
             0: [source_node, local_vuln],
             1: [source_node, target_node, remote_vuln],
-            2: [source_node, port, cred],
+            2: [source_node, target_node, port, cred],
         }
         for part in other_parts[int(sel_action)]:
             options = list(subtree.keys())
@@ -176,7 +176,7 @@ class VATMultiCategoricalDistribution(VATDistribution):
         other_action_parts = {
             0: [source_node, local_vuln],
             1: [source_node, target_node, remote_vuln],
-            2: [source_node, port, cred],
+            2: [source_node, target_node, port, cred],
         }
         for part in other_action_parts[int(sampled_type)]:
             sampled, sampled_logp, _ = self._mask_and_sample_action_part(dists[part], subtree, deterministic)
