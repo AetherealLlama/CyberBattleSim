@@ -226,14 +226,18 @@ class AttackerGoal(NamedTuple):
     of the network nodes.
     """
     # Include goal to reach at least the specifed cumulative total reward after
-    reward: float = 0.0
+    # reward: Optional[float] = 0.0
+    reward: Optional[float] = None
     # Include goal to bring the availability to lower that the specified SLA value
-    low_availability: float = 1.0
+    # low_availability: Optional[float] = 1.0
+    low_availability: Optional[float] = None
     # Include goal to own at least the specified number of nodes.
-    own_atleast: int = 0
+    # own_atleast: Optional[int] = 0
+    own_atleast: Optional[int] = None
     # Include goal to own at least the specified percentage of the network nodes.
     # Set to 1.0 to define goal as the ownership of all network nodes.
-    own_atleast_percent: float = 1.0
+    # own_atleast_percent: Optional[float] = 1.0
+    own_atleast_percent: Optional[float] = None
 
 
 class DefenderGoal(NamedTuple):
@@ -993,16 +997,16 @@ class CyberBattleEnv(gym.Env):
         if not goal:
             return False
 
-        if numpy.sum(self.__episode_rewards) < goal.reward:
+        if goal.reward is not None and numpy.sum(self.__episode_rewards) < goal.reward:
             return False
 
         nodes_owned = self.__get__owned_nodes_indices()
         owned_count = len(nodes_owned)
 
-        if owned_count < goal.own_atleast:
+        if goal.own_atleast is not None and owned_count < goal.own_atleast:
             return False
 
-        if owned_count / self.__node_count < goal.own_atleast_percent:
+        if goal.own_atleast_percent is not None and owned_count / self.__node_count < goal.own_atleast_percent:
             return False
 
         if self.__defender_agent is not None and \
