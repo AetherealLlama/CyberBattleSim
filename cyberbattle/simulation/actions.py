@@ -107,13 +107,14 @@ class AgentActions:
         This is the AgentActions class. It interacts with and makes changes to the environment.
     """
 
-    def __init__(self, environment: model.Environment):
+    def __init__(self, environment: model.Environment, reward_multiplier: float = 1.0):
         """
             AgentActions Constructor
         """
         self._environment = environment
         self._gathered_credentials: Set[model.CredentialID] = set()
         self._discovered_nodes: "OrderedDict[model.NodeID, NodeTrackingInformation]" = OrderedDict()
+        self._reward_multiplier = reward_multiplier
 
         # List of all special tags indicating a privilege level reached on a node
         self.privilege_tags = [model.PrivilegeEscalation(p).tag for p in list(PrivilegeLevel)]
@@ -350,7 +351,7 @@ class AgentActions:
             if node_info.last_reimaging is None or last_time >= node_info.last_reimaging:
                 reward += Penalty.REPEAT
         else:
-            reward += NEW_SUCCESSFUL_ATTACK_REWARD
+            reward += NEW_SUCCESSFUL_ATTACK_REWARD * self._reward_multiplier
 
         self._discovered_nodes[node_id].last_attack[lookup_key] = time()
 
@@ -358,8 +359,8 @@ class AgentActions:
             node_id, outcome)
 
         reward += discovered_nodes_value
-        reward += newly_discovered_nodes * NODE_DISCOVERED_REWARD
-        reward += newly_discovered_credentials * CREDENTIAL_DISCOVERED_REWARD
+        reward += newly_discovered_nodes * NODE_DISCOVERED_REWARD * self._reward_multiplier
+        reward += newly_discovered_credentials * CREDENTIAL_DISCOVERED_REWARD * self._reward_multiplier
 
         reward -= vulnerability.cost
 

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 import gym
 import numpy as np
 import torch as th
-from stable_baselines3.common.policies import BasePolicy
+from stable_baselines3.common.policies import BasePolicy, register_policy
 from stable_baselines3.common.torch_layers import (
     BaseFeaturesExtractor,
     CombinedExtractor,
@@ -346,3 +346,6 @@ class VATMultiInputActorCriticPolicy(VATActorCriticPolicy):
 
 MlpPolicy = VATActorCriticPolicy
 MultiInputPolicy = VATMultiInputActorCriticPolicy
+
+register_policy('MlpVatPolicy', VATActorCriticPolicy)
+register_policy('MultiInputVatPolicy', VATMultiInputActorCriticPolicy)

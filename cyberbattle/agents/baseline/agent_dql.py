@@ -378,7 +378,7 @@ class DeepQLearnerPolicy(Learner):
             # found, so we pick action with the larger expected reward.
             # action: np.int32 = self.policy_net(states_to_consider).max(1)[1].view(1, 1).item()
 
-            state_batch = torch.tensor(states_to_consider).to(device)
+            state_batch = torch.tensor(np.array(states_to_consider)).to(device)
             dnn_output = self.policy_net(state_batch).max(1)
             action_lookups = dnn_output[1].tolist()
             expectedq_lookups = dnn_output[0].tolist()

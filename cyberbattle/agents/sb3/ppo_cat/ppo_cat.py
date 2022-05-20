@@ -9,14 +9,13 @@ from stable_baselines3.common import utils
 from stable_baselines3.common.buffers import RolloutBuffer
 from stable_baselines3.common.callbacks import BaseCallback, CallbackList, ConvertCallback
 from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
-from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.type_aliases import GymEnv, MaybeCallback, Schedule
 from stable_baselines3.common.utils import explained_variance, get_schedule_fn, obs_as_tensor, safe_mean
 from stable_baselines3.common.vec_env import VecEnv
 from torch.nn import functional as F
 
 from cyberbattle.agents.sb3.ppo_cat.buffers import VATRolloutBuffer
-from cyberbattle.agents.sb3.ppo_cat.policies import MlpPolicy, MultiInputPolicy, VATActorCriticPolicy
+from cyberbattle.agents.sb3.ppo_cat.policies import VATActorCriticPolicy
 from cyberbattle.agents.sb3.ppo_cat.utils import is_vat_supported, get_vat
 
 
@@ -45,7 +44,7 @@ class CATPPO(OnPolicyAlgorithm):
         it can be a function of the current progress remaining (from 1 to 0).
         This is a parameter specific to the OpenAI implementation. If None is passed (default),
         no clipping will be done on the value function.
-        IMPORTANT: this clipping depends on the reward scaling.
+        IMPORTANT: this clipping depends on the reward scaling
     :param normalize_advantage: Whether to normalize or not the advantage
     :param ent_coef: Entropy coefficient for the loss calculation
     :param vf_coef: Value function coefficient for the loss calculation
@@ -53,7 +52,7 @@ class CATPPO(OnPolicyAlgorithm):
     :param target_kl: Limit the KL divergence between updates,
         because the clipping is not enough to prevent large update
         see issue #213 (cf https://github.com/hill-a/stable-baselines/issues/213)
-        By default, there is no limit on the kl div.
+        By default, there is no limit on the kl div
     :param tensorboard_log: the log location for tensorboard (if None, no logging)
     :param create_eval_env: Whether to create a second environment that will be
         used for evaluating the agent periodically. (Only available when passing string for the environment)
@@ -61,15 +60,9 @@ class CATPPO(OnPolicyAlgorithm):
     :param verbose: the verbosity level: 0 no output, 1 info, 2 debug
     :param seed: Seed for the pseudo random generators
     :param device: Device (cpu, cuda, ...) on which the code should be run.
-        Setting it to auto, the code will be run on the GPU if possible.
-    :param _init_setup_model: Whether or not to build the network at the creation of the instance
+        Setting it to auto, the code will be run on the GPU if possible
+    :param _init_setup_model: Whether to build the network at the creation of the instance
     """
-
-    policy_aliases: Dict[str, Type[BasePolicy]] = {
-        "MlpPolicy": MlpPolicy,
-        "MultiInputPolicy": MultiInputPolicy
-    }
-
     def __init__(
         self,
         policy: Union[str, Type[VATActorCriticPolicy]],

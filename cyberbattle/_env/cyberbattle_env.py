@@ -294,7 +294,7 @@ class CyberBattleEnv(gym.Env):
         self.__credential_cache: List[model.CachedCredential] = []
         self.__episode_rewards: List[float] = []
         # The actuator used to execute actions in the simulation environment
-        self._actuator = actions.AgentActions(self.__environment)
+        self._actuator = actions.AgentActions(self.__environment, self.reward_multiplier)
         self._defender_actuator = actions.DefenderAgentActions(self.__environment)
 
         self.__stepcount = 0
@@ -398,8 +398,9 @@ class CyberBattleEnv(gym.Env):
                  attacker_goal: Optional[AttackerGoal] = AttackerGoal(own_atleast_percent=1.0),
                  defender_goal=DefenderGoal(eviction=True),
                  defender_constraint=DefenderConstraint(maintain_sla=0.0),
-                 winning_reward=5000.0,
-                 losing_reward=0.0,
+                 winning_reward: float = 5000.0,
+                 losing_reward: float = 0.0,
+                 reward_multiplier: Optional[float] = 1.0,
                  renderer=''
                  ):
         """Arguments
@@ -431,6 +432,10 @@ class CyberBattleEnv(gym.Env):
         self.__LOSING_REWARD = losing_reward
         self.__renderer = renderer
         self.__maximum_steps = maximum_steps
+        if reward_multiplier is not None:
+            self.reward_multiplier = reward_multiplier
+        else:
+            self.reward_multiplier = 1.0
 
         self.viewer = None
 
@@ -1009,8 +1014,7 @@ class CyberBattleEnv(gym.Env):
         if goal.own_atleast_percent is not None and owned_count / self.__node_count < goal.own_atleast_percent:
             return False
 
-        if self.__defender_agent is not None and \
-            self._defender_actuator.network_availability >= goal.low_availability:
+        if self.__defender_agent is not None and self._defender_actuator.network_availability >= goal.low_availability:
             return False
 
         return True
@@ -1019,8 +1023,7 @@ class CyberBattleEnv(gym.Env):
         """Check if any of the defender's constraint is not met"""
         constraint = self.__defender_constraint
 
-        if self.__defender_agent is not None and \
-            self._defender_actuator.network_availability < constraint.maintain_sla:
+        if self.__defender_agent is not None and self._defender_actuator.network_availability < constraint.maintain_sla:
             return True
 
         return False
