@@ -27,7 +27,6 @@ ENV_ID = 'CyberBattleChain-v0'
 DEFAULT_HYPERPARAMS: Dict[str, Any] = {
     'policy': MlpPolicy,
     'verbose': 2,
-    'reward_multiplier': 10.0,
 }
 
 NUM_ENVS = 5
@@ -72,6 +71,7 @@ def make_env(eval_env: bool = False) -> gym.Env:
         maximum_node_count=MAXIMUM_NODE_COUNT,
         maximum_total_credentials=MAXIMUM_TOTAL_CREDENTIALS,
         maximum_steps=None if eval_env else MAX_STEPS,
+        reward_multiplier=10.0,
     )
     ep = EnvironmentBounds.of_identifiers(
         maximum_total_credentials=MAXIMUM_TOTAL_CREDENTIALS,
