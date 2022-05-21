@@ -1,10 +1,37 @@
 import os
 
 import numpy as np
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import EvalCallback, BaseCallback
 from stable_baselines3.common.vec_env import sync_envs_normalization
+from tqdm.auto import tqdm
 
 from cyberbattle.agents.sb3.ppo_cat.evaluation import evaluate_policy
+
+
+class ProgressBarCallback(BaseCallback):
+    def __init__(self, pbar: tqdm):
+        super().__init__()
+        self._pbar = pbar
+
+    def _on_step(self) -> bool:
+        self._pbar.n = self.num_timesteps
+        self._pbar.update(0)
+        return True
+
+
+class ProgressBarManager:
+    def __init__(self, total_timesteps: int):
+        self.pbar = None
+        self.total_timesteps = total_timesteps
+
+    def __enter__(self):
+        self.pbar = tqdm(total=self.total_timesteps)
+        return ProgressBarCallback(self.pbar)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pbar.n = self.total_timesteps
+        self.pbar.update(0)
+        self.pbar.close()
 
 
 class VATEvalCallback(EvalCallback):
@@ -28,6 +55,7 @@ class VATEvalCallback(EvalCallback):
         wrapped with a Monitor wrapper)
     :param ue_vat: Whether to use valid action trees during evaluation
     """
+
     def __init__(self, *args, use_vat: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_vat = use_vat
