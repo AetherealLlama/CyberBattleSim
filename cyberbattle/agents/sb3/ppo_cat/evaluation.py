@@ -14,7 +14,7 @@ def evaluate_policy(  # noqa: C901
     model: CATPPO,
     env: Union[gym.Env, VecEnv],
     n_eval_episodes: int = 10,
-    deterministic: bool = True,
+    deterministic: bool = False,
     render: bool = False,
     callback: Optional[Callable[[Dict[str, Any], Dict[str, Any]], None]] = None,
     reward_threshold: Optional[float] = None,
@@ -71,7 +71,8 @@ def evaluate_policy(  # noqa: C901
     if not is_monitor_wrapped and warn:
         warnings.warn(
             "Evaluation environment is not wrapped with a ``Monitor`` wrapper. "
-            "This may result in reporting modified episode lengths and rewards, if other wrappers happen to modify these. "
+            "This may result in reporting modified episode lengths and rewards, if other wrappers happen to modify "
+            "these. "
             "Consider wrapping environment first with ``Monitor`` wrapper.",
             UserWarning,
         )
