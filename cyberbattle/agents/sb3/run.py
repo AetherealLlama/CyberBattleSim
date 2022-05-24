@@ -4,8 +4,10 @@ from typing import Optional, Callable
 
 import gym
 import numpy as np
+import wandb
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.type_aliases import GymEnv
+from wandb.integration.sb3 import WandbCallback
 
 import cyberbattle
 from cyberbattle._env.cyberbattle_env import EnvironmentBounds
@@ -61,24 +63,48 @@ def main():
     env = Monitor(make_env(0)(), "ppo_cat.log")
     eval_env = Monitor(make_env(66)(), "ppo_cat_eval.log")
 
+    config = {
+        'policy_type': 'MlpPolicy',
+        'env_name': ENV_ID,
+        'total_timesteps': NUM_TIMESTEPS,
+        'env_size': ENV_SIZE,
+        'max_node_count': MAXIMUM_NODE_COUNT,
+        'max_total_credentials': MAXIMUM_TOTAL_CREDENTIALS,
+        'reward_multiplier': REWARD_MULTIPLIER,
+
+        'learning_rate': 1e-4,
+        'n_steps': 4096,
+        'batch_size': 1024,
+        'n_epochs': 25,
+        'net_arch': [dict(pi=[1024, 512, 128], vf=[1024, 512, 128])],
+    }
+
+    wandb.init(
+        project='sb3',
+        config=config,
+        sync_tensorboard=True,
+        save_code=True,
+    )
+
     # model = PPO('MlpPolicy', env, verbose=2, tensorboard_log='./ppo_tboard/')
     model = CATPPO(
         MlpPolicy,
         env,
         verbose=2,
-        learning_rate=1e-4,
-        n_steps=4096,
-        batch_size=1024,
-        n_epochs=25,
+        learning_rate=config['learning_rate'],
+        n_steps=config['n_steps'],
+        batch_size=config['batch_size'],
+        n_epochs=config['n_epochs'],
         policy_kwargs={
-            "net_arch": [dict(pi=[1024, 512, 128], vf=[1024, 512, 128])]
+            "net_arch": config['net_arch']
         },
         tensorboard_log='./ppo_mask_tboard/'
     )
     with ProgressBarManager(NUM_TIMESTEPS) as c:
+        wandb_callback = WandbCallback(verbose=2)
         model.learn(
             total_timesteps=NUM_TIMESTEPS,
-            callback=c,
+            callback=[wandb_callback, c],
             # eval_freq=EVAL_FREQ,
             # n_eval_episodes=NUM_EVAL_EPISODES,
             # eval_log_path='./logs/',
