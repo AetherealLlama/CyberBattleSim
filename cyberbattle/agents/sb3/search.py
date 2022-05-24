@@ -7,13 +7,13 @@ import torch
 import torch.nn as nn
 from optuna.pruners import MedianPruner
 from optuna.samplers import TPESampler
+from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.type_aliases import GymEnv
-from stable_baselines3.common.vec_env import SubprocVecEnv
 
 import cyberbattle
 from cyberbattle._env.cyberbattle_env import EnvironmentBounds
 from cyberbattle.agents.sb3.env_wrapper import SB3EnvWrapper
-from cyberbattle.agents.sb3.ppo_cat.callbacks import VATEvalCallback
+from cyberbattle.agents.sb3.ppo_cat.callbacks import VATEvalCallback, ProgressBarManager
 from cyberbattle.agents.sb3.ppo_cat.policies import MlpPolicy
 from cyberbattle.agents.sb3.ppo_cat.ppo_cat import CATPPO
 
@@ -32,11 +32,11 @@ DEFAULT_HYPERPARAMS: Dict[str, Any] = {
 }
 
 NUM_ENVS = 5
-ENV_SIZE = 10
+ENV_SIZE = 4
 MAX_STEPS = 2000
 REWARD_MULTIPLIER = 10.0
 ATTACKER_GOAL = cyberbattle.AttackerGoal(own_atleast_percent=1.0)
-MAXIMUM_NODE_COUNT = 16
+MAXIMUM_NODE_COUNT = 20
 MAXIMUM_TOTAL_CREDENTIALS = 25
 
 
@@ -74,7 +74,7 @@ def make_env(rank: int, seed: Optional[int] = None) -> Callable[[], GymEnv]:
             attacker_goal=ATTACKER_GOAL,
             maximum_node_count=MAXIMUM_NODE_COUNT,
             maximum_total_credentials=MAXIMUM_TOTAL_CREDENTIALS,
-            maximum_steps=MAX_STEPS,
+            # maximum_steps=MAX_STEPS,
             reward_multiplier=REWARD_MULTIPLIER
         )
         if seed is not None:
@@ -128,18 +128,21 @@ def objective(trial: optuna.Trial) -> float:
     kwargs = DEFAULT_HYPERPARAMS.copy()
     kwargs.update(sample_ppo_params(trial))
 
-    env = SubprocVecEnv([make_env(i) for i in range(NUM_ENVS)])
-    kwargs['env'] = env
+    # env = SubprocVecEnv([make_env(i) for i in range(NUM_ENVS)])
+    # eval_env = SubprocVecEnv([lambda: Monitor(make_env(66)(), "ppo_cat.log")])
+    env = Monitor(make_env(0)(), "ppo_cat.log")
+    eval_env = Monitor(make_env(66)(), "ppo_cat_eval.log")
 
+    kwargs['env'] = env
     model = CATPPO(**kwargs)
-    eval_env = make_env(66)()
 
     eval_callback = TrialEvalCallback(
         eval_env, trial, n_eval_episodes=N_EVAL_EPISODES, eval_freq=EVAL_FREQ, deterministic=False
     )
     nan_encountered = False
     try:
-        model.learn(N_TIMESTEPS, callback=eval_callback)
+        with ProgressBarManager(N_TIMESTEPS) as c:
+            model.learn(N_TIMESTEPS, callback=[eval_callback, c])
     except AssertionError as e:
         print(e)
         nan_encountered = True
