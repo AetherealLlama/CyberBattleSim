@@ -48,11 +48,6 @@ class FeatureGlobalNodesProperties(Feature):
         super(FeatureGlobalNodesProperties, self).__init__(ep, [4] * ep.property_count * ep.maximum_node_count)
 
     def get(self, obs: cyberbattle_env.Observation) -> np.ndarray:
-        # features = [
-        #     obs['discovered_nodes_properties'][i] + 1 if i < len(obs['discovered_nodes_properties']) else np.ones(
-        #         self.ep.property_count)
-        #     for i in range(self.ep.maximum_node_count)
-        # ]
         features = []
         for i in range(self.ep.maximum_node_count):
             if i < len(obs['discovered_nodes_properties']):

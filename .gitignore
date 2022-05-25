@@ -60,3 +60,6 @@ cyberbattle/agents/baseline/notebooks/images/*.gif
 log.txt
 
 notebooks/output/**
+
+wandb/
+*.csv
