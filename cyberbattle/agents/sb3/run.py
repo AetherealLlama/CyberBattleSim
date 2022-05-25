@@ -4,6 +4,7 @@ from typing import Optional, Callable
 
 import gym
 import numpy as np
+import torch
 from rich import print
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.type_aliases import GymEnv
@@ -51,10 +52,11 @@ def make_env(rank: int, seed: Optional[int] = None) -> Callable[[], GymEnv]:
 
 
 def main():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model_name = sys.argv[1]
 
     env = Monitor(make_env(0)(), "ppo_cat_eval")
-    model = CATPPO.load(model_name, env=env, print_system_info=True)
+    model = CATPPO.load(model_name, env=env, device=device, print_system_info=True)
 
     obs = env.reset()
     done = False
