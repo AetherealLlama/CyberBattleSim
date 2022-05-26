@@ -193,6 +193,7 @@ class CATPPO(OnPolicyAlgorithm):
             eval_callback = VATEvalCallback(
                 eval_env,
                 best_model_save_path=log_path,
+                deterministic=False,
                 log_path=log_path,
                 eval_freq=eval_freq,
                 n_eval_episodes=n_eval_episodes,
