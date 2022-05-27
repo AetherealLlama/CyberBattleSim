@@ -79,8 +79,9 @@ def main():
     print(good_actions)
     print(f'total reward: {total_reward}')
 
-    mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=NUM_EVAL_EPISODES)
+    mean_reward, std_reward, mean_length = evaluate_policy(model, env, n_eval_episodes=NUM_EVAL_EPISODES)
     print(f"mean_reward={mean_reward:.2f} +/- {std_reward}")
+    print(f"mean_episode_length={mean_length}")
 
 
 if __name__ == '__main__':

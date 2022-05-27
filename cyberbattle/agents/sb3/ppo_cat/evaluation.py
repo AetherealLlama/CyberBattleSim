@@ -21,7 +21,7 @@ def evaluate_policy(  # noqa: C901
     return_episode_rewards: bool = False,
     warn: bool = True,
     use_vat: bool = True,
-) -> Union[Tuple[float, float], Tuple[List[float], List[int]]]:
+) -> Union[Tuple[float, float, float], Tuple[List[float], List[int]]]:
     """
     Runs policy for ``n_eval_episodes`` episodes and returns average reward.
     If a vector env is passed in, this divides the episodes to evaluate onto the
@@ -47,7 +47,7 @@ def evaluate_policy(  # noqa: C901
         called after each step. Gets locals() and globals() passed as parameters
     :param reward_threshold: Minimum expected reward per episode,
         this will raise an error if the performance is not met
-    :param return_episode_rewards: If True, a list of rewards and episde lengths
+    :param return_episode_rewards: If True, a list of rewards and episode lengths
         per episode will be returned instead of the mean
     :param warn: If True (default), warns user about lack of a Monitor wrapper in the
         evaluation environment
@@ -142,8 +142,9 @@ def evaluate_policy(  # noqa: C901
 
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
+    mean_length = np.mean(episode_rewards)
     if reward_threshold is not None:
         assert mean_reward > reward_threshold, "Mean reward below threshold: " f"{mean_reward:.2f} < {reward_threshold:.2f}"
     if return_episode_rewards:
         return episode_rewards, episode_lengths
-    return mean_reward, std_reward
+    return mean_reward, std_reward, mean_length
