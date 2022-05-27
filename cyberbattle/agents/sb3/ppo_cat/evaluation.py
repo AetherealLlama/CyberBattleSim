@@ -19,9 +19,10 @@ def evaluate_policy(  # noqa: C901
     callback: Optional[Callable[[Dict[str, Any], Dict[str, Any]], None]] = None,
     reward_threshold: Optional[float] = None,
     return_episode_rewards: bool = False,
+    return_mean_ep_length: bool = False,
     warn: bool = True,
     use_vat: bool = True,
-) -> Union[Tuple[float, float, float], Tuple[List[float], List[int]]]:
+) -> Union[Tuple[float, float], Tuple[float, float, float], Tuple[List[float], List[int]]]:
     """
     Runs policy for ``n_eval_episodes`` episodes and returns average reward.
     If a vector env is passed in, this divides the episodes to evaluate onto the
@@ -147,4 +148,7 @@ def evaluate_policy(  # noqa: C901
         assert mean_reward > reward_threshold, "Mean reward below threshold: " f"{mean_reward:.2f} < {reward_threshold:.2f}"
     if return_episode_rewards:
         return episode_rewards, episode_lengths
-    return mean_reward, std_reward, mean_length
+    if return_mean_ep_length:
+        return mean_reward, std_reward, mean_length
+    else:
+        return mean_reward, std_reward
