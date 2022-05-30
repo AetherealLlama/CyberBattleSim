@@ -22,7 +22,7 @@ ATTACKER_GOAL = cyberbattle.AttackerGoal(own_atleast_percent=1.0)
 MAXIMUM_NODE_COUNT = 20
 MAXIMUM_TOTAL_CREDENTIALS = 25
 MAX_STEPS = 2000
-REWARD_MULTIPLIER = 10.0
+REWARD_MULTIPLIER = 1.0
 
 NUM_EVAL_EPISODES = 10
 
@@ -51,13 +51,7 @@ def make_env(rank: int, seed: Optional[int] = None) -> Callable[[], GymEnv]:
     return _init
 
 
-def main():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model_name = sys.argv[1]
-
-    env = Monitor(make_env(0)(), "ppo_cat_eval")
-    model = CATPPO.load(model_name, env=env, device=device, print_system_info=True)
-
+def run_episode(model: CATPPO, env: GymEnv):
     obs = env.reset()
     done = False
 
@@ -79,7 +73,18 @@ def main():
     print(good_actions)
     print(f'total reward: {total_reward}')
 
-    mean_reward, std_reward, mean_length = evaluate_policy(model, env, n_eval_episodes=NUM_EVAL_EPISODES)
+
+def main():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model_name = sys.argv[1]
+
+    env = Monitor(make_env(0)(), "ppo_cat_eval")
+    model = CATPPO.load(model_name, env=env, device=device, print_system_info=True)
+
+    # run_episode(model, env)
+
+    mean_reward, std_reward, mean_length = evaluate_policy(model, env, n_eval_episodes=NUM_EVAL_EPISODES,
+                                                           return_mean_ep_length=True)
     print(f"mean_reward={mean_reward:.2f} +/- {std_reward}")
     print(f"mean_episode_length={mean_length}")
 
