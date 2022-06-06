@@ -230,7 +230,7 @@ class AttackerGoal(NamedTuple):
     reward: Optional[float] = None
     # Include goal to bring the availability to lower that the specified SLA value
     # low_availability: Optional[float] = 1.0
-    low_availability: Optional[float] = None
+    low_availability: Optional[float] = 1.0
     # Include goal to own at least the specified number of nodes.
     # own_atleast: Optional[int] = 0
     own_atleast: Optional[int] = None

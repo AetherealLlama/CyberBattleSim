@@ -16,6 +16,6 @@ class CyberBattleChain(cyberbattle_env.CyberBattleEnv):
             initial_environment=chainpattern.new_environment(size),
             **kwargs)
 
-    @ property
+    @property
     def name(self) -> str:
         return f"CyberBattleChain-{self.size}"
