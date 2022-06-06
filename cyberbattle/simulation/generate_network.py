@@ -271,7 +271,7 @@ def cyberbattle_model_from_traffic_graph(
     return graph
 
 
-def new_environment(n_servers_per_protocol: int):
+def new_environment(n_servers_per_protocol: int, n_clients: int = 50):
     """Create a new simulation environment based on
     a randomly generated network topology.
 
@@ -280,7 +280,7 @@ def new_environment(n_servers_per_protocol: int):
     were arbirarily picked. We recommend exploring different values for those parameters.
     """
     traffic = generate_random_traffic_network(seed=None,
-                                              n_clients=50,
+                                              n_clients=n_clients,
                                               n_servers={
                                                   "SMB": n_servers_per_protocol,
                                                   "HTTP": n_servers_per_protocol,

@@ -250,7 +250,7 @@ class VulnerabilityInfo(NamedTuple):
 VulnerabilityLibrary = Dict[VulnerabilityID, VulnerabilityInfo]
 
 
-class RulePermission(Enum):
+class RulePermission(IntEnum):
     """Determine if a rule is blocks or allows traffic"""
     ALLOW = 0
     BLOCK = 1
@@ -289,7 +289,7 @@ class FirewallConfiguration(NamedTuple):
         FirewallRule("HTTP", RulePermission.ALLOW)]
 
 
-class MachineStatus(Enum):
+class MachineStatus(IntEnum):
     """Machine running status"""
     Stopped = 0
     Running = 1

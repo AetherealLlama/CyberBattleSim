@@ -35,7 +35,7 @@ DiscoveredNodeInfo = TypedDict('DiscoveredNodeInfo', {
 class Penalty:
     """Penalties (=negative reward) returned for some actions taken in the simulation"""
     # penalty for generic suspiciousness
-    SUPSPICIOUSNESS = -5.0
+    SUSPICIOUSNESS = -5.0
 
     # penalty for attempting a connection to a port that was not open
     SCANNING_UNOPEN_PORT = -10.0
@@ -303,7 +303,7 @@ class AgentActions:
                 raise ValueError(f"Vulnerability '{vulnerability_id}' not supported by node='{node_id}'")
             else:
                 logger.info(f"Vulnerability '{vulnerability_id}' not supported by node '{node_id}'")
-                return False, ActionResult(reward=Penalty.SUPSPICIOUSNESS, outcome=None)
+                return False, ActionResult(reward=Penalty.SUSPICIOUSNESS, outcome=None)
 
         vulnerability = vulnerabilities[vulnerability_id]
 
