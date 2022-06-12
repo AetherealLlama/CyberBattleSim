@@ -631,7 +631,7 @@ class DefenderAgentActions:
         self._environment.network.nodes[node_id].update({'data': node_info})
 
     def on_attacker_step_taken(self):
-        """Function to be called each time a step is take in the simulation"""
+        """Function to be called each time a step is taken in the simulation"""
         for node_id in list(self.node_reimaging_progress.keys()):
             remaining_steps = self.node_reimaging_progress[node_id]
             if remaining_steps > 0:

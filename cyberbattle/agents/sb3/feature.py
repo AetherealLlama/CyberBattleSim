@@ -87,3 +87,30 @@ class FeatureGlobalNodesPrivilegeLevel(Feature):
         features = np.array(obs['nodes_privilegelevel']) + 1
         features.resize(self.ep.maximum_node_count, refcheck=False)
         return features
+
+
+class FeatureNewlyDiscoveredNodesCount(Feature):
+    def __init__(self, ep: EnvironmentBounds):
+        super().__init__(ep, [1 + ep.maximum_node_count])
+
+    def get(self, obs: cyberbattle_env.Observation) -> np.ndarray:
+        features = np.array(obs['newly_discovered_nodes_count'])
+        return features
+
+
+class FeatureLateralMove(Feature):
+    def __init__(self, ep: EnvironmentBounds):
+        super().__init__(ep, [2])
+
+    def get(self, obs: cyberbattle_env.Observation) -> np.ndarray:
+        features = np.array(obs['lateral_move'])
+        return features
+
+
+class FeatureProbeResult(Feature):
+    def __init__(self, ep: EnvironmentBounds):
+        super().__init__(ep, [3])
+
+    def get(self, obs: cyberbattle_env.Observation) -> np.ndarray:
+        features = np.array(obs['probe_result'])
+        return features

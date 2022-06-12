@@ -230,7 +230,7 @@ class AttackerGoal(NamedTuple):
     reward: Optional[float] = None
     # Include goal to bring the availability to lower that the specified SLA value
     # low_availability: Optional[float] = 1.0
-    low_availability: Optional[float] = 1.0
+    low_availability: Optional[float] = None
     # Include goal to own at least the specified number of nodes.
     # own_atleast: Optional[int] = 0
     own_atleast: Optional[int] = None
@@ -1014,7 +1014,8 @@ class CyberBattleEnv(gym.Env):
         if goal.own_atleast_percent is not None and owned_count / self.__node_count < goal.own_atleast_percent:
             return False
 
-        if self.__defender_agent is not None and self._defender_actuator.network_availability >= goal.low_availability:
+        if goal.low_availability is not None and self.__defender_agent is not None \
+            and self._defender_actuator.network_availability >= goal.low_availability:
             return False
 
         return True
