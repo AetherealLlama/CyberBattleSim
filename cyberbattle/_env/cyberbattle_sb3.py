@@ -193,6 +193,7 @@ def cyberbattle_model_from_traffic_graph(g: nx.DiGraph) -> nx.DiGraph:
 
     def create_node_data(node_id: NodeID):
         return m.NodeInfo(
+            properties=["Ubuntu"],
             services=[m.ListeningService(name=port, allowedCredentials=assigned_passwords[(target_node, port)])
                       for (target_node, port) in assigned_passwords.keys()
                       if target_node == node_id],
