@@ -18,7 +18,7 @@ from networkx import convert_matrix
 from plotly.subplots import make_subplots
 
 from cyberbattle._env.defender import DefenderAgent
-from cyberbattle.simulation.model import PortName, PrivilegeLevel
+from cyberbattle.simulation.model import PortName, PrivilegeLevel, NodeID
 from .discriminatedunion import DiscriminatedUnion
 from ..simulation import commandcontrol, model, actions
 
@@ -929,6 +929,12 @@ class CyberBattleEnv(gym.Env):
         node_id = self.__internal_node_id_from_external_node_index(node)
         node_owned = self._actuator.get_node_privilegelevel(node_id) > PrivilegeLevel.NoAccess
         return node_owned
+
+    def get_node_ownership(self) -> Dict[NodeID, bool]:
+        ret = {}
+        for nodeid, node in self.__environment.nodes():
+            ret[nodeid] = node.agent_installed
+        return ret
 
     def is_action_valid(self, action, action_mask: Optional[ActionMask] = None) -> bool:
         """Determine if an action is valid (i.e. parameters are in expected ranges)"""

@@ -5,8 +5,9 @@
 from gym.envs.registration import registry, EnvSpec
 from gym.error import Error
 
-from . import simulation
+from ._env import cyberbattle_sb3
 from . import agents
+from . import simulation
 from ._env.cyberbattle_env import AttackerGoal, DefenderGoal
 from .samples.chainpattern import chainpattern
 from .samples.toyctf import toy_ctf
@@ -90,4 +91,13 @@ register(
             'losing_reward': 0.0
             },
     reward_threshold=2200,
+)
+
+if 'CyberBattleSB3-v0' in registry.env_specs:
+    del registry.env_specs['CyberBattleSB3-v0']
+
+register(
+    id='CyberBattleSB3-v0',
+    cyberbattle_env_identifiers=cyberbattle_sb3.ENV_IDENTIFIERS,
+    entry_point='cyberbattle._env.cyberbattle_sb3:CyberBattleSB3',
 )
