@@ -1157,3 +1157,6 @@ class CyberBattleEnv(gym.Env):
 
     def close(self) -> None:
         return None
+
+    def install_new_environment(self, env: model.Environment):
+        self.__initial_environment = env
