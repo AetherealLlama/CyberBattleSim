@@ -236,6 +236,7 @@ class CyberBattleSB3(cyberbattle_env.CyberBattleEnv):
         return f'CyberBattleSB3-{self.size}'
 
     def reset(self, regen_env: bool = True) -> Observation:
-        new_env = new_environment(self.size, self.prob)
-        self.install_new_environment(new_env)
+        if regen_env:
+            new_env = new_environment(self.size, self.prob)
+            self.install_new_environment(new_env)
         return super().reset()
