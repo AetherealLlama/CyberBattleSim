@@ -134,6 +134,7 @@ class SB3EnvWrapper(gym.Wrapper):
         self._action_space = SB3MultiDiscreteActionModel(self.ep)
         # self._action_space = SB3DiscreteActionModel(self.ep)
         self._observation_space = f.ConcatFeatures(self.ep, [
+            # f.FeatureDiscoveredNodeCount(ep),
             f.FeatureGlobalNodesProperties(ep),
             f.FeatureGlobalCredentialCacheLength(ep),
             f.FeatureGlobalCredentialCache(ep),

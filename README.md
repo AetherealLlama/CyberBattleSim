@@ -1,5 +1,11 @@
 ﻿# CyberBattleSim
 
+## Imperial College Fourth Year Project - Tudor-Adrian Nazarie
+
+The custom PPO agent implementation is located in `cyberbattle/agents/sb3`, along with all the scripts used to train and evaluate the agent. The scripts used are `train.py`, `run.py`, and `eval.py`. To train an agent, change the desired parameters in `train.py` and run.
+
+Other than that, changes have been made to the CyberBattleSim core classes in `cyberbattle._env`.
+
 > April 8th, 2021: See the [announcement](https://www.microsoft.com/security/blog/2021/04/08/gamifying-machine-learning-for-stronger-security-and-ai-models/) on the Microsoft Security Blog.
 
 CyberBattleSim is an experimentation research platform to investigate the interaction
