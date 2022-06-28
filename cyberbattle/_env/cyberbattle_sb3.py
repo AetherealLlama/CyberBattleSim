@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict
-from typing import List, Tuple, DefaultDict, Dict
+from typing import List, Tuple, Dict, Optional
 
 import networkx as nx
 import numpy as np
@@ -63,11 +63,18 @@ def generate_password() -> CredentialID:
     return password
 
 
-def create_random_traffic_network(size: int = 9, prob: float = 0.15, max_edges: int = 25) -> nx.DiGraph:
-    g = nx.erdos_renyi_graph(size, prob, directed=True)
+def create_random_traffic_network(size: int = 9, prob: float = 0.15, max_edges: int = 25, seed: Optional[int] = None) -> nx.DiGraph:
+    # from rich import print
+    # print(f'starting network seed {seed}')
+
+    g = nx.erdos_renyi_graph(size, prob, directed=True, seed=seed)
     while not nx.is_strongly_connected(g) or len(list(g.edges)) > max_edges:
-        g = nx.erdos_renyi_graph(size, prob, directed=True)
+        if seed is not None:
+            seed *= 2
+        g = nx.erdos_renyi_graph(size, prob, directed=True, seed=seed)
     assert nx.is_strongly_connected(g) and len(list(g.edges)) < max_edges
+
+    # print(f'generated network with seed {seed}')
 
     digraph = nx.DiGraph()
     ports = ['SSH', 'FTP', 'MySQL']
@@ -210,26 +217,27 @@ def cyberbattle_model_from_traffic_graph(g: nx.DiGraph) -> nx.DiGraph:
     return graph
 
 
-def create_network(size: int, prob: float = 0.15) -> nx.DiGraph:
-    g = create_random_traffic_network(size, prob)
+def create_network(size: int, prob: float = 0.15, seed: Optional[int] = None) -> nx.DiGraph:
+    g = create_random_traffic_network(size, prob, seed=seed)
     network = cyberbattle_model_from_traffic_graph(g)
 
     return network
 
 
-def new_environment(size: int, prob: float = 0.15) -> m.Environment:
+def new_environment(size: int, prob: float = 0.15, seed: Optional[int] = None) -> m.Environment:
     return m.Environment(
-        network=create_network(size, prob),
+        network=create_network(size, prob, seed=seed),
         vulnerability_library=dict([]),
         identifiers=ENV_IDENTIFIERS,
     )
 
 
 class CyberBattleSB3(cyberbattle_env.CyberBattleEnv):
-    def __init__(self, size: int, prob: float = 0.15, **kwargs):
+    def __init__(self, size: int, prob: float = 0.15, seed: Optional[int] = None, **kwargs):
         self.size = size
         self.prob = prob
-        super().__init__(initial_environment=new_environment(self.size, self.prob), **kwargs)
+        self.seed = seed
+        super().__init__(initial_environment=new_environment(self.size, self.prob, self.seed), **kwargs)
 
     @property
     def name(self) -> str:
@@ -237,6 +245,6 @@ class CyberBattleSB3(cyberbattle_env.CyberBattleEnv):
 
     def reset(self, regen_env: bool = True) -> Observation:
         if regen_env:
-            new_env = new_environment(self.size, self.prob)
+            new_env = new_environment(self.size, self.prob, self.seed)
             self.install_new_environment(new_env)
         return super().reset()
